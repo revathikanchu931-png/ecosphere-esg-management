@@ -485,6 +485,9 @@ function App() {
           <span>{currentUser ? 'Signed in' : 'Not signed in'}</span>
           <strong>{currentUser?.name || company.name}</strong>
           <small>{currentUser ? currentUser.role : 'Login required for protected updates'}</small>
+          {currentUser && (
+            <button className="sidebar-logout" type="button" onClick={logout}>Logout</button>
+          )}
         </div>
       </aside>
 

@@ -110,6 +110,23 @@ nav button.active {
   line-height: 1.1;
 }
 
+.sidebar-logout {
+  width: 100%;
+  min-height: 38px;
+  margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.sidebar-logout:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .workspace {
   display: grid;
   gap: 22px;
