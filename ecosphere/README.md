@@ -1,28 +1,60 @@
-# EcoSphere
+# EcoSphere: ESG Management Platform
 
-EcoSphere is a hackathon-ready ESG command center for organizations that need to track sustainability work, employee participation, compliance evidence, and report generation in one place.
+EcoSphere is an ESG Management Platform that helps organizations measure, manage, and improve Environmental, Social, and Governance performance from one dashboard.
 
 ## Problem
 
-ESG work is often split across spreadsheets, emails, CSR forms, vendor documents, and manual reports. Teams lose time collecting proof, calculating impact, and explaining progress to leadership.
+ESG reporting is often manual, disconnected from ERP operations, and hard to monitor in real time. EcoSphere connects operational data, employee participation, compliance activities, and reporting workflows.
 
-## Solution
+## Core Modules
 
-EcoSphere gives teams a single dashboard for:
+- Company Setup: enter or upload any organization profile before using the dashboard.
+- Environmental: emission factors, carbon transactions, sustainability goals, and carbon reports.
+- Social: CSR activities, employee participation, diversity metrics, training, and engagement.
+- Governance: policies, acknowledgements, audits, compliance issues, owners, and due dates.
+- Gamification: challenges, XP, badges, rewards, redemptions, and leaderboards.
+- Reports: environmental, social, governance, ESG summary, and custom report builder.
+- Settings: departments, categories, ESG configuration, notification settings, and business rules.
 
-- Environmental tracking with carbon hotspots and reduction actions.
-- Social impact with CSR participation, proof status, and points.
-- Governance monitoring with risk severity, owners, and due dates.
-- Report building for investor summaries, carbon audits, CSR reports, and compliance briefs.
-- AI-style recommendations that highlight the next best action.
+## Required Business Rules Covered
 
-## Hackathon Highlights
+- Auto emission calculation from Purchase, Manufacturing, Expense, and Fleet records.
+- Evidence requirement before CSR or challenge approval.
+- Badge auto-award based on XP or completed challenge rules.
+- Reward redemption with stock and point balance logic shown in the UI.
+- Compliance issue ownership with due dates and overdue flagging.
+- Notifications for compliance issues, approvals, policy reminders, and badge unlocks.
 
-- Polished React dashboard suitable for a live demo.
-- Responsive layout for laptop and mobile judging.
-- No charting dependency required; visualizations use CSS and React.
-- Mock ESG data included for realistic walkthroughs.
-- Clear project story: measure, act, verify, report.
+## Company Upload Format
+
+EcoSphere can load any company profile from the Company Setup screen.
+
+JSON example:
+
+```json
+{
+  "name": "GreenSteel Manufacturing",
+  "industry": "Manufacturing",
+  "location": "Hyderabad",
+  "employees": 520,
+  "reportingYear": "2026",
+  "logo": "https://example.com/logo.png",
+  "website": "https://greensteel.example",
+  "email": "sustainability@greensteel.example",
+  "carbonReductionTarget": "35% by 2030",
+  "netZeroTargetYear": "2045",
+  "renewableEnergy": 52,
+  "sustainabilityMission": "Decarbonize production while improving worker safety and supplier accountability.",
+  "reportingStandard": "BRSR"
+}
+```
+
+CSV example:
+
+```csv
+name,industry,location,employees,reportingYear,website,email,carbonReductionTarget,netZeroTargetYear,renewableEnergy,sustainabilityMission,reportingStandard
+GreenSteel Manufacturing,Manufacturing,Hyderabad,520,2026,https://greensteel.example,sustainability@greensteel.example,35% by 2030,2045,52,Decarbonize production,BRSR
+```
 
 ## Tech Stack
 
@@ -36,6 +68,8 @@ EcoSphere gives teams a single dashboard for:
 npm install
 npm run dev
 ```
+
+Open the local URL shown by Vite, usually `http://localhost:5173/`.
 
 ## Build
 
