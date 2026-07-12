@@ -1,16 +1,44 @@
-# React + Vite
+# EcoSphere
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+EcoSphere is a hackathon-ready ESG command center for organizations that need to track sustainability work, employee participation, compliance evidence, and report generation in one place.
 
-Currently, two official plugins are available:
+## Problem
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+ESG work is often split across spreadsheets, emails, CSR forms, vendor documents, and manual reports. Teams lose time collecting proof, calculating impact, and explaining progress to leadership.
 
-## React Compiler
+## Solution
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+EcoSphere gives teams a single dashboard for:
 
-## Expanding the ESLint configuration
+- Environmental tracking with carbon hotspots and reduction actions.
+- Social impact with CSR participation, proof status, and points.
+- Governance monitoring with risk severity, owners, and due dates.
+- Report building for investor summaries, carbon audits, CSR reports, and compliance briefs.
+- AI-style recommendations that highlight the next best action.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Hackathon Highlights
+
+- Polished React dashboard suitable for a live demo.
+- Responsive layout for laptop and mobile judging.
+- No charting dependency required; visualizations use CSS and React.
+- Mock ESG data included for realistic walkthroughs.
+- Clear project story: measure, act, verify, report.
+
+## Tech Stack
+
+- React
+- Vite
+- CSS
+
+## Run Locally
+
+```bash
+npm install
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build
+```
