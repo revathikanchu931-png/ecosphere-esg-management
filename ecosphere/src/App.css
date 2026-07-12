@@ -65,6 +65,7 @@ nav {
 
 nav button,
 .primary-action,
+.secondary-action,
 .hero-actions button,
 input,
 select {
@@ -575,6 +576,15 @@ input[type="file"] {
   margin-top: 18px;
   color: white;
   background: #1f7a4d;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.secondary-action {
+  width: 100%;
+  margin-top: 18px;
+  color: #1f7a4d;
+  background: #e5f3ea;
   font-weight: 900;
   cursor: pointer;
 }

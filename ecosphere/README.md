@@ -61,6 +61,29 @@ GreenSteel Manufacturing,Manufacturing,Hyderabad,520,2026,https://greensteel.exa
 - React
 - Vite
 - CSS
+- Node.js backend using built-in modules
+- JSON file database for hackathon MVP persistence
+
+## MVP Backend
+
+The project includes a lightweight backend in `server.js`:
+
+- Demo authentication: `POST /api/auth/login`
+- User registration: `POST /api/auth/register`
+- Dashboard live data: `GET /api/dashboard`
+- Company profile update: `PUT /api/company`
+- CRUD APIs for departments, emission factors, carbon transactions, CSR activities, compliance issues, and challenges
+- ESG score calculation using Environmental 40%, Social 30%, Governance 30%
+- Report endpoint: `GET /api/reports`
+
+Users can register with any email and password from the UI. A seeded admin is also available if needed:
+
+```json
+{
+  "email": "admin@ecosphere.test",
+  "password": "admin123"
+}
+```
 
 ## Run Locally
 
@@ -71,8 +94,27 @@ npm run dev
 
 Open the local URL shown by Vite, usually `http://localhost:5173/`.
 
+To run with backend APIs during development, open two terminals:
+
+```bash
+npm run api
+npm run dev
+```
+
+The frontend proxies `/api` requests to `http://localhost:4000`.
+
 ## Build
 
 ```bash
 npm run build
 ```
+
+## Deploy With Backend
+
+If deploying the backend MVP, use Render **Web Service**:
+
+- Root Directory: `ecosphere/ecosphere`
+- Build Command: `npm install && npm run build`
+- Start Command: `npm start`
+
+If deploying only the frontend, use Render **Static Site** with Publish Directory `dist`.

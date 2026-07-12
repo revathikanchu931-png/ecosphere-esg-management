@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
 const defaultCompany = {
@@ -160,6 +160,7 @@ const businessRules = [
 ]
 
 const navItems = [
+  ['login', 'Login'],
   ['company', 'Company Setup'],
   ['dashboard', 'Dashboard'],
   ['master', 'Master Data'],
@@ -216,25 +217,144 @@ function DataTable({ columns, rows }) {
 }
 
 function App() {
-  const [activeView, setActiveView] = useState('company')
+  const [activeView, setActiveView] = useState('login')
   const [company, setCompany] = useState(defaultCompany)
   const [companyDraft, setCompanyDraft] = useState(defaultCompany)
+  const [liveData, setLiveData] = useState(null)
+  const [authToken, setAuthToken] = useState('')
+  const [currentUser, setCurrentUser] = useState(null)
+  const [loginForm, setLoginForm] = useState({
+    email: '',
+    password: '',
+  })
+  const [registerForm, setRegisterForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'manager',
+  })
+  const [loginStatus, setLoginStatus] = useState('Login to unlock protected ESG management actions.')
+  const [registerStatus, setRegisterStatus] = useState('Create an account with any valid email and password.')
+  const [apiStatus, setApiStatus] = useState('Using frontend demo data')
   const [uploadStatus, setUploadStatus] = useState('Upload JSON/CSV or enter details manually.')
   const [reportModule, setReportModule] = useState('All modules')
   const [reportDept, setReportDept] = useState('All departments')
   const [reportFormat, setReportFormat] = useState('PDF')
   const [reportStatus, setReportStatus] = useState('Select filters to preview an ESG report.')
 
-  const esgScore = useMemo(() => {
-    const total = departments.reduce((sum, dept) => sum + dept.total, 0)
-    return Math.round(total / departments.length)
+  const activeDepartments = liveData?.departments || departments
+  const activeCarbonTracked = liveData?.carbonTracked || 1089
+  const activeOpenIssues = liveData?.openIssues ?? 3
+
+  useEffect(() => {
+    fetch('/api/dashboard')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('API unavailable')
+        }
+        return response.json()
+      })
+      .then((data) => {
+        setLiveData(data)
+        setCompany(data.company)
+        setCompanyDraft(data.company)
+        setApiStatus('Connected to backend API')
+      })
+      .catch(() => {
+        setApiStatus('Using frontend demo data')
+      })
   }, [])
 
-  const selectedDept = departments.find((dept) => dept.name === reportDept)
+  const esgScore = useMemo(() => {
+    const total = activeDepartments.reduce((sum, dept) => sum + dept.total, 0)
+    return Math.round(total / activeDepartments.length)
+  }, [activeDepartments])
+
+  const selectedDept = activeDepartments.find((dept) => dept.name === reportDept)
   const previewScore = selectedDept ? selectedDept.total : esgScore
 
+  function login(event) {
+    event.preventDefault()
+    setLoginStatus('Checking credentials...')
+
+    fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(loginForm),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Invalid login')
+        }
+        return response.json()
+      })
+      .then((data) => {
+        setAuthToken(data.token)
+        setCurrentUser(data.user)
+        setLoginStatus(`Signed in as ${data.user.name}`)
+        setActiveView('dashboard')
+      })
+      .catch(() => {
+        setAuthToken('')
+        setCurrentUser(null)
+        setLoginStatus('Login failed. Check your email and password, or register a new account.')
+      })
+  }
+
+  function register(event) {
+    event.preventDefault()
+    setRegisterStatus('Creating account...')
+
+    fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(registerForm),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((body) => {
+            throw new Error(body.error || 'Registration failed')
+          })
+        }
+        return response.json()
+      })
+      .then((data) => {
+        setAuthToken(data.token)
+        setCurrentUser(data.user)
+        setLoginForm({ email: data.user.email, password: '' })
+        setRegisterStatus(`Account created. Signed in as ${data.user.name}.`)
+        setLoginStatus(`Signed in as ${data.user.name}`)
+        setActiveView('dashboard')
+      })
+      .catch((error) => {
+        setAuthToken('')
+        setCurrentUser(null)
+        setRegisterStatus(error.message)
+      })
+  }
+
+  function logout() {
+    setAuthToken('')
+    setCurrentUser(null)
+    setLoginStatus('Logged out. Login again to save protected changes.')
+    setActiveView('login')
+  }
+
   function generateReport() {
-    setReportStatus(`${reportFormat} export ready for ${company.name} - ${reportDept} - ${reportModule}`)
+    const params = new URLSearchParams({
+      format: reportFormat,
+      department: reportDept,
+      module: reportModule,
+    })
+
+    fetch(`/api/reports?${params}`)
+      .then((response) => response.json())
+      .then((report) => {
+        setReportStatus(`${report.format} export ready for ${report.company} at score ${report.overallScore}`)
+      })
+      .catch(() => {
+        setReportStatus(`${reportFormat} export ready for ${company.name} - ${reportDept} - ${reportModule}`)
+      })
   }
 
   function updateCompanyField(field, value) {
@@ -242,11 +362,25 @@ function App() {
   }
 
   function saveCompanyDetails() {
+    if (!authToken) {
+      setUploadStatus('Please login before saving company details to the backend.')
+      setActiveView('login')
+      return
+    }
+
     setCompany({
       ...companyDraft,
       employees: Number(companyDraft.employees) || 0,
       renewableEnergy: Number(companyDraft.renewableEnergy) || 0,
     })
+    fetch('/api/company', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      body: JSON.stringify(companyDraft),
+    }).catch(() => {})
     setUploadStatus(`${companyDraft.name || 'Company'} profile applied to dashboard.`)
     setActiveView('dashboard')
   }
@@ -348,9 +482,9 @@ function App() {
         </nav>
 
         <div className="sidebar-card">
-          <span>Active company</span>
-          <strong>{company.name}</strong>
-          <small>{company.industry} - {company.reportingYear}</small>
+          <span>{currentUser ? 'Signed in' : 'Not signed in'}</span>
+          <strong>{currentUser?.name || company.name}</strong>
+          <small>{currentUser ? currentUser.role : 'Login required for protected updates'}</small>
         </div>
       </aside>
 
@@ -370,6 +504,7 @@ function App() {
               participation, compliance activity, gamification, and reporting in one workspace.
             </p>
             <div className="hero-actions">
+              <button type="button" onClick={() => setActiveView('login')}>{currentUser ? 'Account' : 'Login'}</button>
               <button type="button" onClick={() => setActiveView('company')}>Add company</button>
               <button type="button" onClick={() => setActiveView('reports')}>Build report</button>
             </div>
@@ -386,10 +521,81 @@ function App() {
 
         <section className="stats-grid">
           <StatCard label="Overall ESG score" value={`${esgScore}/100`} detail="Weighted department average" tone="green" />
-          <StatCard label="Carbon tracked" value="1,089 kg" detail="Auto-calculated from ERP records" tone="blue" />
+          <StatCard label="Carbon tracked" value={`${activeCarbonTracked.toLocaleString()} kg`} detail="Auto-calculated from ERP records" tone="blue" />
           <StatCard label="Company employees" value={company.employees.toLocaleString()} detail={`${company.industry} - ${company.location}`} tone="gold" />
-          <StatCard label="Renewable energy" value={`${company.renewableEnergy}%`} detail={company.carbonReductionTarget} tone="ink" />
+          <StatCard label="Login status" value={currentUser ? 'Active' : 'Guest'} detail={currentUser ? currentUser.email : apiStatus} tone="ink" />
         </section>
+
+        {activeView === 'login' && (
+          <section className="content-grid">
+            <article className="panel wide">
+              <p className="eyebrow">Authentication</p>
+              <h2>Login</h2>
+              <form className="form-grid" onSubmit={login}>
+                <label>Email
+                  <input
+                    type="email"
+                    placeholder="you@company.com"
+                    value={loginForm.email}
+                    onChange={(event) => setLoginForm((current) => ({ ...current, email: event.target.value }))}
+                  />
+                </label>
+                <label>Password
+                  <input
+                    type="password"
+                    placeholder="Enter password"
+                    value={loginForm.password}
+                    onChange={(event) => setLoginForm((current) => ({ ...current, password: event.target.value }))}
+                  />
+                </label>
+                <button className="primary-action" type="submit">Login</button>
+              </form>
+              <p className="status-note">{loginStatus}</p>
+            </article>
+            <article className="panel wide">
+              <p className="eyebrow">New account</p>
+              <h2>Register</h2>
+              <form className="form-grid" onSubmit={register}>
+                <label>Full name
+                  <input
+                    placeholder="Your name"
+                    value={registerForm.name}
+                    onChange={(event) => setRegisterForm((current) => ({ ...current, name: event.target.value }))}
+                  />
+                </label>
+                <label>Email
+                  <input
+                    type="email"
+                    placeholder="you@company.com"
+                    value={registerForm.email}
+                    onChange={(event) => setRegisterForm((current) => ({ ...current, email: event.target.value }))}
+                  />
+                </label>
+                <label>Password
+                  <input
+                    type="password"
+                    placeholder="Minimum 6 characters"
+                    value={registerForm.password}
+                    onChange={(event) => setRegisterForm((current) => ({ ...current, password: event.target.value }))}
+                  />
+                </label>
+                <label>Role
+                  <select value={registerForm.role} onChange={(event) => setRegisterForm((current) => ({ ...current, role: event.target.value }))}>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Admin</option>
+                    <option value="auditor">Auditor</option>
+                    <option value="employee">Employee</option>
+                  </select>
+                </label>
+                <button className="primary-action" type="submit">Create account</button>
+              </form>
+              <p className="status-note">{registerStatus}</p>
+              {currentUser && (
+                <button className="secondary-action" type="button" onClick={logout}>Logout</button>
+              )}
+            </article>
+          </section>
+        )}
 
         {activeView === 'company' && (
           <>
@@ -488,7 +694,7 @@ function App() {
                   <span className="pill">Live scoring</span>
                 </div>
                 <div className="department-list">
-                  {departments.map((dept) => (
+                  {activeDepartments.map((dept) => (
                     <div className="department-row" key={dept.code}>
                       <strong>{dept.name}</strong>
                       <div><span>Environmental</span><ProgressBar value={dept.environmental} /></div>
@@ -533,7 +739,7 @@ function App() {
               </article>
               <article className="panel">
                 <p className="eyebrow">Notifications</p>
-                <h2>Action alerts</h2>
+                <h2>{activeOpenIssues} action alerts</h2>
                 <div className="notice-list">
                   {notifications.map((item) => <span key={item}>{item}</span>)}
                 </div>
@@ -558,7 +764,7 @@ function App() {
               <h2>Departments and ownership</h2>
               <DataTable
                 columns={['Department', 'Code', 'Head', 'Employees', 'Status']}
-                rows={departments.map((dept) => [dept.name, dept.code, dept.head, dept.employees, 'Active'])}
+                rows={activeDepartments.map((dept) => [dept.name, dept.code, dept.head, dept.employees, 'Active'])}
               />
             </article>
             <article className="panel">
@@ -699,7 +905,7 @@ function App() {
               <label>Department
                 <select value={reportDept} onChange={(event) => setReportDept(event.target.value)}>
                   <option>All departments</option>
-                  {departments.map((dept) => <option key={dept.name}>{dept.name}</option>)}
+                  {activeDepartments.map((dept) => <option key={dept.name}>{dept.name}</option>)}
                 </select>
               </label>
               <label>Format
